@@ -1,0 +1,118 @@
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 sm:p-8">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md sm:max-w-lg lg:max-w-xl">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-semibold">{{ isEdit ? 'Editar' : 'Crear' }} Movimiento Kardex</h2>
+      <div class="flex items-center">
+        <span class="mr-2 text-sm font-medium">Estás en la sección:</span>
+        <span class="px-3 py-1 rounded-md font-medium text-white" 
+              [ngClass]="{'bg-green-600': showEntrada, 'bg-red-600': !showEntrada}">
+          {{ showEntrada ? 'Entrada' : 'Salida' }}
+        </span>
+      </div>
+    </div>
+
+    <button class="mb-6 px-4 py-2 rounded-md w-full sm:w-auto text-white font-medium transition-colors duration-200" 
+            [ngClass]="{'bg-red-500 hover:bg-red-600': showEntrada, 'bg-green-500 hover:bg-green-600': !showEntrada}"
+            (click)="toggleEntradaSalida()">
+      {{ showEntrada ? 'Genera una Salida' : 'Genera una Entrada' }}
+    </button>
+
+    <form #form="ngForm" (ngSubmit)="onSubmitModal()" class="space-y-5" novalidate>
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Fecha de Emisión</label>
+            <input type="date" [(ngModel)]="movementKardex.issueDate" name="issueDate" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required #issueDate="ngModel" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Tipo de Kardex</label>
+            <select [(ngModel)]="movementKardex.typeKardexId" name="typeKardex" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required #typeKardex="ngModel">
+              <option value="" disabled selected>Seleccione un tipo</option>
+              <option *ngFor="let type of kardexTypes" [value]="type.id">{{ type.name }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Concepto con opciones específicas para Salida -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Concepto</label>
+        <!-- Input de texto para Entrada -->
+        <div *ngIf="showEntrada">
+          <input type="text" [(ngModel)]="movementKardex.concept" name="concept" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required />
+        </div>
+        
+        <!-- Selector para Salida -->
+        <div *ngIf="!showEntrada">
+          <select [(ngModel)]="movementKardex.concept" name="concept" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required>
+            <option value="" disabled selected>Seleccione un concepto</option>
+            <option value="Venta">Venta</option>
+            <option value="Consumo Interno">Consumo Interno</option>
+            <option value="Merma">Merma</option>
+          </select>
+        </div>
+        
+        <!-- Usamos el control de formulario en lugar de referencias de plantilla -->
+        <div *ngIf="form.controls['concept']?.invalid && form.controls['concept']?.touched" class="text-red-500 text-sm mt-1">
+          El concepto es obligatorio.
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Tipo de Documento</label>
+          <input type="text" [(ngModel)]="movementKardex.documentType" name="documentType" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required #documentType="ngModel" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Número de Documento</label>
+          <input type="text" [(ngModel)]="movementKardex.documentNumber" name="documentNumber" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required #documentNumber="ngModel" />
+        </div>
+      </div>
+
+      <!-- Sección de Entrada -->
+      <div *ngIf="showEntrada" class="bg-green-50 p-4 rounded-lg border border-green-200">
+        <h3 class="text-lg font-medium text-green-700 mb-3">Detalles de Entrada</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Cantidad Entrada</label>
+            <input type="number" [(ngModel)]="movementKardex.cantidadEntrada" name="cantidadEntrada" class="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500" required #cantidadEntrada="ngModel" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Costo Unitario Entrada</label>
+            <input type="number" [(ngModel)]="movementKardex.costoUnitarioEntrada" name="costoUnitarioEntrada" class="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500" required #costoUnitarioEntrada="ngModel" />
+          </div>
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700">Total Entrada</label>
+            <input type="text" [value]="modalValorTotalEntrada | currency" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100" disabled />
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección de Salida -->
+      <div *ngIf="!showEntrada" class="bg-red-50 p-4 rounded-lg border border-red-200">
+        <h3 class="text-lg font-medium text-red-700 mb-3">Detalles de Salida</h3>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Cantidad Salida</label>
+          <input type="number" [(ngModel)]="movementKardex.cantidadSalida" name="cantidadSalida" class="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" required #cantidadSalida="ngModel" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Observación</label>
+        <textarea [(ngModel)]="movementKardex.observation" name="observation" rows="2" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required #observation="ngModel"></textarea>
+      </div>
+
+      <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-2">
+        <button type="button" (click)="onCancelModal()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200"> 
+          Cancelar
+        </button>
+
+        <button type="submit" [disabled]="form.invalid" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400 transition-colors duration-200">
+          {{ isEdit ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,128 @@
+<!-- Switcher de Estado -->
+<div class="flex items-center mb-4">
+    <span class="mr-2 font-semibold">Mostrar:</span>
+    <label class="relative inline-flex items-center cursor-pointer">
+        <input 
+            type="checkbox" 
+            class="sr-only peer" 
+            [(ngModel)]="statusActive" 
+            (change)="toggleStatus()">
+        <div 
+            class="w-11 h-6 bg-red-500 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer 
+            peer-checked:bg-green-500 
+            peer-checked:after:translate-x-5 peer-checked:after:border-white 
+            after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
+            after:bg-white after:border after:rounded-full after:h-5 after:w-5 
+            after:transition-all">
+        </div>
+        <span class="ml-3 text-sm font-medium text-gray-900">
+            {{ statusActive ? 'Activos' : 'Inactivos' }}
+        </span>
+    </label>
+</div>
+
+<!-- Tabla en Pantallas Grandes -->
+<div class="hidden md:block overflow-x-auto">
+    <table class="w-full border-separate border-spacing-y-2 text-sm md:text-base">
+        <thead>
+            <tr class="bg-blue-100 text-blue-900 text-center">
+                <th class="px-2 py-3 font-semibold">ID</th>
+                <th class="px-2 py-3 font-semibold">Tipo</th>
+                <th class="px-2 py-3 font-semibold">Descripción</th>
+                <th class="px-2 py-3 font-semibold">Peso (kg)</th>
+                <th class="px-2 py-3 font-semibold">Cantidad</th>
+                <th class="px-2 py-3 font-semibold">Precio/kg</th>
+                <th class="px-2 py-3 font-semibold">Stock</th>
+                <th class="px-2 py-3 font-semibold">Ingreso</th>
+                <th class="px-2 py-3 font-semibold">Vencimiento</th>
+                <th class="px-2 py-3 font-semibold">Estado</th>
+                <th class="px-2 py-3 font-semibold">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let product of paginatedProducts" class="bg-gray-50 hover:bg-gray-100 text-center border-b">
+                <td class="px-2 py-3">{{ product.id }}</td>
+                <td class="px-2 py-3">{{ product.type }}</td>
+                <td class="px-2 py-3">{{ product.description }}</td>
+                <td class="px-2 py-3">{{ product.packageWeight }}</td>
+                <td class="px-2 py-3">{{ product.packageQuantity }}</td>
+                <td class="px-2 py-3">{{ product.pricePerKg | currency }}</td>
+                <td class="px-2 py-3">{{ product.stock }}</td>
+                <td class="px-2 py-3">{{ product.entryDate | date: 'dd/MMM/yyyy' : 'es' }}</td>
+                <td class="px-2 py-3">{{ product.expiryDate | date: 'dd/MMM/yyyy' : 'es' }}</td>
+                <td class="px-2 py-3">
+                    <span class="inline-flex w-5 h-5 rounded-full"
+                        [ngClass]="{'bg-green-500': product.status === 'A', 'bg-red-500': product.status === 'I'}">
+                    </span>
+                </td>
+                <td class="px-2 py-3 flex justify-center space-x-2 text-lg">
+                    <button *ngIf="product.status === 'A'" class="text-blue-500 hover:text-blue-700" (click)="updateProduct(product.id, product)">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button *ngIf="product.status === 'A'" class="text-red-500 hover:text-red-700" (click)="softDeleteProduct(product.id)">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                    <button *ngIf="product.status === 'I'" class="text-green-500 hover:text-green-700" (click)="restoreProduct(product.id)">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Tarjetas en Pantallas Pequeñas -->
+<div class="md:hidden space-y-4">
+    <div *ngFor="let product of paginatedProducts" class="bg-gray-100 rounded-lg shadow-md p-4">
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold">{{ product.description }}</h3>
+            <span class="text-sm font-medium px-2 py-1 rounded-lg" 
+                [ngClass]="{'bg-green-500 text-white': product.status === 'A', 'bg-red-500 text-white': product.status === 'I'}">
+                {{ product.status === 'A' ? 'Activo' : 'Inactivo' }}
+            </span>
+        </div>
+        <p class="text-gray-600 text-sm">Tipo: {{ product.type }}</p>
+        <p class="text-gray-600 text-sm">Peso: {{ product.packageWeight }} kg</p>
+        <p class="text-gray-600 text-sm">Cantidad: {{ product.packageQuantity }}</p>
+        <p class="text-gray-600 text-sm">Precio/kg: {{ product.pricePerKg | currency }}</p>
+        <p class="text-gray-600 text-sm">Stock: {{ product.stock }}</p>
+        <p class="text-gray-600 text-sm">Ingreso: {{ product.entryDate | date: 'dd/MMM/yyyy' : 'es' }}</p>
+        <p class="text-gray-600 text-sm">Vencimiento: {{ product.expiryDate | date: 'dd/MMM/yyyy' : 'es' }}</p>
+        <div class="flex justify-end space-x-2 mt-2">
+            <button *ngIf="product.status === 'A'" class="text-blue-500 hover:text-blue-700 text-lg" (click)="updateProduct(product.id, product)">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button *ngIf="product.status === 'A'" class="text-red-500 hover:text-red-700 text-lg" (click)="softDeleteProduct(product.id)">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+            <button *ngIf="product.status === 'I'" class="text-green-500 hover:text-green-700 text-lg" (click)="restoreProduct(product.id)">
+                <i class="fas fa-undo"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Paginador -->
+<div class="flex justify-center mt-4 space-x-2">
+    <button 
+        class="px-3 py-2 bg-gray-300 rounded-md text-sm font-semibold hover:bg-gray-400 disabled:opacity-50"
+        [disabled]="currentPage === 1"
+        (click)="cambiarPagina(currentPage - 1)">
+        Anterior
+    </button>
+
+    <button 
+        *ngFor="let page of getPages()"
+        class="px-3 py-2 rounded-md text-sm font-semibold"
+        [ngClass]="{'bg-blue-500 text-white': currentPage === page, 'bg-gray-200 hover:bg-gray-300': currentPage !== page}"
+        (click)="cambiarPagina(page)">
+        {{ page }}
+    </button>
+    
+    <button 
+        class="px-3 py-2 bg-gray-300 rounded-md text-sm font-semibold hover:bg-gray-400 disabled:opacity-50"
+        [disabled]="currentPage === getPages().length"
+        (click)="cambiarPagina(currentPage + 1)">
+        Siguiente
+    </button>
+</div>
